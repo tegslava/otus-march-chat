@@ -40,4 +40,13 @@ public class Server {
             c.sendMessage(message);
         }
     }
+
+    public synchronized void sendMessageToClient(String clientName, String message) {
+        for (ClientHandler c : clients) {
+            if (c.getUsername().toUpperCase().equals(clientName)) {
+                c.sendMessage(message);
+                break;
+            }
+        }
+    }
 }

@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ClientHandler {
     private Server server;
@@ -17,6 +19,22 @@ public class ClientHandler {
     private void generateUsername() {
         usersCounter++;
         this.username = "user" + usersCounter;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    private static String[] parsingUserCommand(String input) {
+        String[] allMatches = new String[3];
+        String regex = "^(/w )(\\w*) (.*)";
+        Matcher m = Pattern.compile(regex).matcher(input);
+        if (m.find()) {
+            allMatches[0] = m.group(1);
+            allMatches[1] = m.group(2);
+            allMatches[2] = m.group(3);
+        }
+        return allMatches;
     }
 
     public ClientHandler(Server server, Socket socket) throws IOException {
@@ -34,6 +52,11 @@ public class ClientHandler {
                         if (msg.startsWith("/exit")) {
                             disconnect();
                             break;
+                        } else if (msg.startsWith("/w ")) {
+                            String[] parsingWords = parsingUserCommand(msg);
+                            String clientName = parsingWords[1].toUpperCase();
+                            String msgString = parsingWords[2];
+                            server.sendMessageToClient(clientName, this.username + " wrote me: " + msgString);
                         }
                         continue;
                     }
@@ -72,7 +95,7 @@ public class ClientHandler {
             e.printStackTrace();
         }
         try {
-            if (socket != null && !socket.isClosed()) {
+            if (socket != null /*&& !socket.isClosed()*/) {
                 socket.close();
             }
         } catch (IOException e) {
