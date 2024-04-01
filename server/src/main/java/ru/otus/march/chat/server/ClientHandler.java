@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ClientHandler {
-    private Server server;
-    private Socket socket;
-    private DataInputStream in;
-    private DataOutputStream out;
+    private final Server server;
+    private final Socket socket;
+    private final DataInputStream in;
+    private final DataOutputStream out;
     private String nickname;
     private Role role;
 
@@ -47,9 +47,6 @@ public class ClientHandler {
                 if (msg.startsWith("/exit")) {
                     break;
                 } else if (msg.startsWith("/w ")) {
-                    /*String[] parsingWords = parsingUserCommand(msg);
-                    String clientName = parsingWords[1].toUpperCase();
-                    String msgString = parsingWords[2];*/
                     String[] tokens = msg.split(" ", 3);
                     if (tokens.length != 3) {
                         sendMessage("Некорректный формат запроса");
@@ -57,15 +54,17 @@ public class ClientHandler {
                     }
                     String clientName = tokens[1];
                     String msgString = tokens[2];
-                    server.sendMessageToClient(clientName, nickname + " wrote me: " + msgString);
+                    if (!clientName.equals(nickname)) {
+                        server.sendMessageToClient(clientName, nickname + " wrote me: " + msgString);
+                    }
                 } else if (msg.startsWith("/kick ")) {
                     String[] tokens = msg.split(" ");
                     if (tokens.length != 2) {
                         sendMessage("Некорректный формат запроса");
                         continue;
                     }
-                    if (this.role == Role.ADMIN) {
-                        String clientName = tokens[1];
+                    String clientName = tokens[1];
+                    if (this.role == Role.ADMIN && !clientName.equals(nickname)) {
                         server.kickClient(clientName);
                     }
                 }
