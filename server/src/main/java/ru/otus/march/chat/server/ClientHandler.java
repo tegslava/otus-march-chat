@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
 
 public class ClientHandler {
     private final Server server;
@@ -100,7 +101,6 @@ public class ClientHandler {
                 sendMessage(nickname + ", добро пожаловать в чат!");
                 return true;
             } else if (msg.startsWith("/register ")) {
-                // register login pass nickname
                 String[] tokens = msg.split(" ");
                 if (tokens.length != 4) {
                     sendMessage("Некорректный формат запроса");
@@ -113,9 +113,13 @@ public class ClientHandler {
                     sendMessage("Указанный логин уже занят");
                     continue;
                 }
-                if (server.getAuthenticationService().isNicknameAlreadyExist(nickname)) {
-                    sendMessage("Указанный никнейм уже занят");
-                    continue;
+                try {
+                    if (server.getAuthenticationService().isNicknameAlreadyExist(nickname)) {
+                        sendMessage("Указанный никнейм уже занят");
+                        continue;
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
                 if (!server.getAuthenticationService().register(login, password, nickname)) {
                     sendMessage("Не удалось пройти регистрацию");

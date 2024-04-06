@@ -1,5 +1,6 @@
 package ru.otus.march.chat.server;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,5 +94,10 @@ public class InMemoryAuthenticationService implements AuthenticationService {
             }
         }
         return false;
+    }
+
+    @Override
+    public void disconnect() throws SQLException {
+
     }
 }

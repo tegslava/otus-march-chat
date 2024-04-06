@@ -3,12 +3,13 @@ package ru.otus.march.chat.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Server {
-    private int port;
-    private List<ClientHandler> clients;
+    private final int port;
+    private final List<ClientHandler> clients;
     private AuthenticationService authenticationService;
 
     public AuthenticationService getAuthenticationService() {
@@ -22,7 +23,8 @@ public class Server {
 
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            authenticationService = new InMemoryAuthenticationService();
+            //authenticationService = new InMemoryAuthenticationService();
+            authenticationService = new SQLiteAuthenticationService();
             System.out.println("Сервис аутентификации запущен: " + authenticationService.getClass().getSimpleName());
             System.out.printf("Сервер запущен на порту: %d, ожидаем подключения клиентов\n", port);
             while (true) {
@@ -35,6 +37,12 @@ public class Server {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                authenticationService.disconnect();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -81,7 +89,11 @@ public class Server {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                getAuthenticationService().unRegister(nickname);
+                try {
+                    getAuthenticationService().unRegister(nickname);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 clients.remove(c);
                 return;
             }
